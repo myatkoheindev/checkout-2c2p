@@ -1,0 +1,66 @@
+# C# rules for the backend. Inherits charset, line endings, and whitespace from the root file.
+root = false
+
+[*.{cs,csx}]
+indent_size = 4
+
+# Namespaces
+csharp_style_namespace_declarations = file_scoped:error
+dotnet_style_namespace_match_folder = true:warning
+
+# Usings
+dotnet_sort_system_directives_first = true
+# Unused usings fail the build (needs GenerateDocumentationFile, set in Directory.Build.props).
+dotnet_diagnostic.IDE0005.severity = warning
+csharp_using_directive_placement = outside_namespace:warning
+
+# Types and members
+csharp_style_prefer_primary_constructors = true:suggestion
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_prefer_braces = true:warning
+dotnet_style_readonly_field = true:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+
+# Naming: interfaces start with I; constants and static readonly fields are PascalCase; other
+# private fields are _camelCase.
+dotnet_naming_rule.constants_pascal.severity = warning
+dotnet_naming_rule.constants_pascal.symbols = constants
+dotnet_naming_rule.constants_pascal.style = pascal
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.required_modifiers = const
+
+dotnet_naming_rule.static_readonly_pascal.severity = warning
+dotnet_naming_rule.static_readonly_pascal.symbols = static_readonly_fields
+dotnet_naming_rule.static_readonly_pascal.style = pascal
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
+
+dotnet_naming_style.pascal.capitalization = pascal_case
+
+dotnet_naming_rule.interfaces_begin_with_i.severity = warning
+dotnet_naming_rule.interfaces_begin_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_begin_with_i.style = prefix_i
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.prefix_i.required_prefix = I
+dotnet_naming_style.prefix_i.capitalization = pascal_case
+
+dotnet_naming_rule.private_fields_underscore.severity = warning
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_camel
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+
+# Library code awaits without capturing a context; ASP.NET Core has none, so the API is exempt.
+[src/Checkout.{Application,Infrastructure}/**.cs]
+dotnet_diagnostic.CA2007.severity = warning
+
+[tests/**.cs]
+# xUnit discovers public test classes; sealing or internalising them is not wanted.
+dotnet_diagnostic.CA1515.severity = none
+# Integration tests call HttpClient without a token, as the skill's examples do; the test
+# timeout, not cancellation, bounds them.
+dotnet_diagnostic.xUnit1051.severity = none

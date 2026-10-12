@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Entities and their rules. No package or project references: everything else depends on this. -->
+  <PropertyGroup>
+    <RootNamespace>Checkout.Domain</RootNamespace>
+  </PropertyGroup>
+
+</Project>

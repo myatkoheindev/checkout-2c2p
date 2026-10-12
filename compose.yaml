@@ -1,0 +1,70 @@
+# Local stack: `docker compose up` starts MySQL, Redis, the API (:8080) and the web app (:3000). The API applies migrations
+# and seeds customers and products on startup.
+#
+# MySQL and Redis are published on the host for running the API outside Docker. If a local
+# MySQL or Redis already holds 3306 or 6379, set MYSQL_HOST_PORT / REDIS_HOST_PORT in .env.
+name: checkout-2c2p
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: checkout
+      MYSQL_USER: checkout
+      MYSQL_PASSWORD: checkout
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ./backend
+      target: production
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Server=mysql;Port=3306;Database=checkout;User=checkout;Password=checkout"
+      ConnectionStrings__Redis: "redis:6379"
+      Frontend__Url: "http://localhost:3000"
+      # 2C2P posts the backend notification here: your ngrok / Cloudflare Tunnel URL.
+      Checkout__PublicApiUrl: "${PUBLIC_API_URL:-http://localhost:8080}"
+      TwoC2P__MerchantId: "${TWOC2P_MERCHANT_ID:-JT01}"
+      TwoC2P__SecretKey: "${TWOC2P_SECRET_KEY:-}"
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./frontend
+      target: production
+      args:
+        # The API as the browser sees it, inlined into the bundle at build time.
+        NEXT_PUBLIC_API_URL: "http://localhost:8080"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  mysql-data:

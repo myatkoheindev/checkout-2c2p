@@ -1,0 +1,22 @@
+# .NET
+**/bin/
+**/obj/
+**/TestResults/
+*.user
+.vs/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+
+# Environment and secrets (the 2C2P secret key lives in one of these, never in git)
+.env
+.env.*
+!.env.example
+backend/src/Checkout.Api/appsettings.Development.json
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/*
